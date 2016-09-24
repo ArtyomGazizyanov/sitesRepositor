@@ -98,7 +98,14 @@
 					else
 					if($_POST["action"] == "save_changed_username")
 					{
-						
+						$db = JFactory::getDBO();
+
+						$sql=" UPDATE `txmb7_users` SET `name` = '" . $_POST["changed_username"] . "'   WHERE `id` =".$_POST["user_id"];
+						$db->setQuery($sql);
+						if(!$db->query())
+						{ 
+ 							 echo __LINE__.$db->stderr();
+						} 
 						die; 
 					}
 			?>
@@ -157,6 +164,7 @@
 				</p>
 			  </div>
 			</div>
+			<button class="save_button">Cохранить изменения</button>
 			<script type="text/javascript">
 				 jQuery.noConflict();
 			 </script>
@@ -266,22 +274,23 @@
 							SetStudentsMarkHomework(data);
 						}
 					}); 
-				});
-				jQuery(".username_input").change(function()
-				{
-					user_id = jQuery(this).attr("data_id");
-					changed_username = jQuery(this).text();
+				});			
+				jQuery(".save_button").click(function()
+				{ 
+					console.log("hello");
+					user_id = jQuery(".username_input").attr("data_id");
+					changed_username = jQuery(".username_input").val();
+					console.log(jQuery(".username_input").val());
 					jQuery.ajax({
 						type: "post",
 						url: 'http://localhost/school/index.php/lichnyj-kabinet/redaktirovanie-otsenok',
-						data: "action=save_changed_username&user_id="+user_id+"&changed_username="+changed_username",
+						data: "action=save_changed_username&user_id="+user_id+"&changed_username="+changed_username,
 						success: function(data) 
 						{
 							console.log(data);
 						}
 					}); 					
-				}
-				
+				}); 
 			</script>
 			<div class="clear"></div>
 			{/source}
