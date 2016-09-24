@@ -91,9 +91,15 @@
 						{ 
 							$student_id = $students_array[$i]; 
 							$mark = $new_array[$student_id]; 
-							print "<input data_id=".$student_id." class='added_marks participation_input' name='textfield' type='text' value=$mark>"; 
+							print "<input data_id=".$student_id." class='added_marks markers_input' name='textfield' type='text' value=$mark>"; 
 						}					
 						die;
+					}
+					else
+					if($_POST["action"] == "save_changed_username")
+					{
+						
+						die; 
 					}
 			?>
 			<div class="control_panel">
@@ -230,7 +236,7 @@
 						}
 					}); 
 				});
-				 jQuery("#select_class").change(function()
+				jQuery("#select_class").change(function()
 				{ 
 					class_id = jQuery(this).attr('value');
 					jQuery.ajax({
@@ -261,6 +267,21 @@
 						}
 					}); 
 				});
+				jQuery(".username_input").change(function()
+				{
+					user_id = jQuery(this).attr("data_id");
+					changed_username = jQuery(this).text();
+					jQuery.ajax({
+						type: "post",
+						url: 'http://localhost/school/index.php/lichnyj-kabinet/redaktirovanie-otsenok',
+						data: "action=save_changed_username&user_id="+user_id+"&changed_username="+changed_username",
+						success: function(data) 
+						{
+							console.log(data);
+						}
+					}); 					
+				}
+				
 			</script>
 			<div class="clear"></div>
 			{/source}
