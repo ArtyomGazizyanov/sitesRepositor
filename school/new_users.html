@@ -13,7 +13,8 @@
 			 $students = $db->loadObjectList();
 
 			 foreach ($students as $student)
-			 {
+			 { 
+			 	 
 				 print "<input data_id=".$student -> id." class='added_students username_input' name='textfield' type='text' value=".str_replace (' ','_', $student -> name).">"; 
 			 } 
 			die;
@@ -97,6 +98,20 @@
 						die;
 					}
 					else
+					if($_POST["action"] == "get_last_reg_id")
+					{
+						$db = JFactory::getDBO();
+						$sql = "SELECT MAX(`user_id`) FROM `txmb7_user_usergroup_map`";
+						$db->setQuery($sql);
+						$user_ids = $db->loadObjectList();
+						foreach ($user_ids as $user_id)
+						{
+							echo(current($user_id)+1); 
+						}   		
+						 
+						die; 
+					}
+					else
 					if($_POST["action"] == "save_changed_username")
 					{
 						$db = JFactory::getDBO();
@@ -111,6 +126,48 @@
 						{
 							echo "Изменения успешно сохранены";
 						}
+						die; 
+					}
+					else
+					if($_POST["action"] == "save_add_user")
+					{
+						$db = JFactory::getDBO();
+						$sql = "SELECT MAX(`user_id`) FROM `txmb7_user_usergroup_map`";
+						$db->setQuery($sql);
+						$user_ids = $db->loadObjectList();
+						foreach ($user_ids as $user_id)
+						{
+							$new_id = current($user_id) + 1; 
+						}   
+						
+						jimport('joomla.user.helper');
+						$date = date("Y-m-d H:i:s");
+						$params_string = '{"admin_style":"","admin_language":"","language":"","editor":"","helpsite":"","timezone":""}';
+						
+ 						$yourpass = JUserHelper::hashPassword($_POST["password"]);
+						$sql2="INSERT INTO `txmb7_users` (`id`, `name`, `username`, `password` , `students_group`, `email`, `registerDate`, `activation`, `params`)VALUES('" . $new_id . "', '" . $_POST["changed_username"] . "', '" . $_POST["username"] . "', '" . $yourpass. "', '" . $_POST["group_id"] . "', 'root".$yourpass."@mail.com', '".$date."', '', '".$params_string."' )";
+						$db->setQuery($sql2);
+						if(!$db->query())
+						{ 
+ 							 echo __LINE__.$db->stderr();
+						} 
+						else
+						{ 
+						}
+						
+						$sql1 = "INSERT INTO  `txmb7_user_usergroup_map` (`user_id`, `group_id`) VALUES('" . $new_id . "', '2')";  
+						$db->setQuery($sql1); 
+						if(!$db->query())
+						{ 
+ 							 echo __LINE__.$db->stderr();
+						} 
+						else
+						{ 
+						}
+						
+						
+						
+						
 						die; 
 					}
 					else
@@ -365,28 +422,10 @@
 			?>
 					</select> 
 				</div>
-				<div class="select_week_block">
-					<p id="stext">Неделя</p>
-					<select id="select_week">
-						<option disabled value="default_week" selected>Выберете неделю</option> 
-					</select> 
-				</div>
-				 <div class="select_class_block">
-					<p id="stext">Урок</p>
-					<select id="select_class">
-						<option disabled value="default" selected>Выберете урок</option> 
-					</select> 
-				</div>
 				<div class="add_button_panel">			
-		     	 <button class="add_week_button">Добавить неделю</button>     	 
+		     	 <button class="add_week_button">Добавить пользователя</button>     	 
 		     	 <span class="saved_status"></span>
-				</div>
-				<div class="visible_week_panel">
-	     		 <button class="visible_week_button">Сделать неделю видимой</button>
-		     	 <button class="invisible_week_button">Сделать неделю невидимой</button>
-		     	 <span class="visible_week_text"></span>
-		     	</div>
-				
+				</div> 				
 				<div class="clear"></div>
 			</div>
 			<div class="input_fields">
@@ -395,25 +434,11 @@
 				  Имя
 				</p>
 			  </div>
-			  <div class="input_participation">
+			   <div class="output_pswd">
 				<p class="column_name hiden_elem">
-				  Participation
+				  Информация
 				</p>
-			    <div class="input_fields_participation">
-			    </div>
-			  </div>
-			  <div class="input_quiz">
-				<p class="hiden_elem column_name">
-				  Quiz
-				</p>
-				<div class="input_fields_quiz">
-			    </div>
-			  </div>
-			  <div class="input_homework">
-				<p class=" column_name  hiden_elem">
-				  Homework
-				</p>
-				<div class="input_fields_homework">
+			    <div class="input_fields_pswd_login">
 			    </div>
 			  </div>
 			  <div class="clear"></div>
@@ -426,11 +451,56 @@
 				 jQuery.noConflict();
 			 </script> 
 			<script type="text/javascript">  
+				function rnd(x,y,z) 
+				{
+					 var num;
+					 do {
+						num = parseInt(Math.random()*z);
+						if (num >= x && num <= y) break;
+					 } while (true);
+					return(num);
+				}
+				function gen_pass()
+				{
+					upp = new Array('','A','B','C','D','E','F','G','H','I','J','K','L',
+						'M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z');
+					low = new Array('','a','b','c','d','e','f','g','h','i','j','k','l',
+						'm','n','o','p','q','r','s','t','u','v','w','x','y','z');
+					dig = new Array('','0','1','2','3','4','5','6','7','8','9');
+					
+					var pswrd = '';
+					var znak, s;
+					var k = 0;
+					var n = 8;
+					var pass = new Array();
+					var w = rnd(30,80,100);
+					for (var r = 0; r < w; r++) {
+						 znak = rnd(1,26,100); pass[k] = upp[znak]; k++; 
+						znak = rnd(1,26,100); pass[k] = low[znak]; k++; 
+						znak = rnd(1,10,100); pass[k] = dig[znak]; k++; 
+					}
+					for (var i = 0; i < n; i++) {
+						s = rnd(1,k-1,100);
+						pswrd += pass[s];
+					} 
+					return pswrd;
+				}
+				
+				
+				function generate()
+				{
+					return gen_pass(); 
+				}
 				
 				function SetUsersToPage(data)
 				{
 					jQuery(".input_students").append(data);					
 				} 
+				
+				function showGeneratedUserInfo(name, login, password)
+				{
+					console.log("generated for " + name + " username: " + login + " password:" + password);
+				}
 				
 				function ChangeUsername()
 				{
@@ -442,7 +512,53 @@
 							value =  studentsContainer[i].getAttribute("value"); 
 							value = value.replace('_',' ');
 							studentsContainer[i].setAttribute("value", value);
-						} 
+						}
+						studentsContainer[i].focusout  =  function()
+						{
+							
+							user_id = jQuery(this).attr("data_id");
+							if (jQuery(this).attr("data_id"))
+							{ 
+								changed_username = jQuery(this).val();  
+								jQuery.ajax({
+									type: "post",
+									url: document.location.href,
+									data: "action=save_changed_username&user_id="+user_id+"&changed_username="+changed_username,
+									success: function(data) 
+									{
+										ShowSavedStatus(data);
+									}
+								}); 	
+							}
+							else 
+							{ 
+								gen_login =generate();
+								gen_pswd =generate();
+								changed_username = jQuery(this).val();
+								jQuery(".input_fields_pswd_login").append("<span class='User_gen_info'>generated for "+changed_username+ " username: " + gen_login +" password: " + gen_pswd + "</span>");
+								group_id = jQuery("#select_group").attr('value'); 
+								jQuery.ajax({
+									type: "post",
+									url: document.location.href,
+									data: "action=save_add_user&changed_username="+changed_username+"&password=" + gen_pswd + "&username=" + gen_login+ "&group_id=" + group_id,
+									success: function(data) 
+									{
+										console.log(data);
+									}
+								}); 
+								elem = jQuery(this);
+								jQuery.ajax({
+									type: "post",
+									url: document.location.href,
+									data: "action=get_last_reg_id&changed_username="+changed_username+"&password=" + gen_pswd + "&username=" + gen_login+ "&group_id=" + group_id,
+									success: function(data) 
+									{
+										 elem.attr("data_id",'"'+data+'"');
+									}
+								}); 
+							}
+								
+						};
 					}
 				}
 				
@@ -621,20 +737,11 @@
 						url: document.location.href,
 						data: "action=get_students&group_id="+group_id,
 						success: function(data)
-						{
-							SetUsersToPage(data); 
+						{ 
+							SetUsersToPage(data);
 							ChangeUsername();
 						}
-					}); 
-					 jQuery.ajax({
-						type: "post",
-						url: document.location.href,
-						data: "action=get_weeks&group_id="+group_id,
-						success: function(data) 
-						{
-							SetWeeksToPage(data);
-						}
-					}); 
+					});   
 				});
 				jQuery("#select_week").change(function()
 				{
@@ -699,17 +806,10 @@
 				
 				jQuery(".add_week_button").click(function()
 				{
-					group_id = jQuery("#select_group").attr('value');
-					jQuery.ajax({
-						type: "post",
-						url: document.location.href,
-						data: "action=add_week&group_id="+group_id,
-						success: function(data) 
-						{ 
-							SetNewWeeksToPage(data, group_id);
-						}
+					group_id = jQuery("#select_group").attr('value'); 
+					jQuery(".input_students").append("<input class='added_students username_input' name='textfield' type='text'>"); 
 					
-					});
+					ChangeUsername();
 					
 				});
 				jQuery(".visible_week_button").click(function()

@@ -4,7 +4,7 @@
 			{
 				$nums = explode(':', $val);
 				return [$nums[0] => $nums[1]];
-			}
+			}   
 			if($_POST["action"] == "get_students")
 			{ 
 			 $db = JFactory::getDBO();
@@ -14,7 +14,7 @@
 
 			 foreach ($students as $student)
 			 {
-				 print "<input data_id=".$student -> id." class='added_students username_input' name='textfield' type='text' value=".str_replace (' ','_', $student -> name).">"; 
+				 print "<input data_id=".$student -> id." class='added_students username_input' name='textfield' type='text' value=".$student -> name.">"; 
 			 } 
 			die;
 			}
@@ -280,9 +280,7 @@
 						
 						$sql2="INSERT  INTO gr" . $_POST["group_id"] . "_class SET `id` = ". $new_id_class2.", `participation`='".$basis_string."', `quiz`='".$basis_string."', `homework`='".$basis_string."'";
 						$db->setQuery($sql2);   
-						
-
-												
+																		
 						if(!$db->query())
 						{ 
  							 echo __LINE__.$db->stderr();
@@ -330,19 +328,38 @@
 						die; 
 					}
 					else
-					if($_POST["action"] == "check_week_invisible")
+					if($_POST["action"] == "save_me")
 					{
 						$db = JFactory::getDBO();
-
-						$sql="SELECT visible FROM  gr" . $_POST["group_id"] . "_week  WHERE `id` =".$_POST["week_id"];
+						
+						$sql="UPDATE `groups` SET `warnings` = '" . $_POST["new_warning"] . "' WHERE `id` =".$_POST["group_id"];
 						$db->setQuery($sql);
-						$visible_ids = $db->loadObjectList();
-						foreach ($visible_ids as $visible_id)
-						{  
-							echo $visible_id  -> visible;
-						}  
+						if(!$db->query())
+						{ 
+ 							 echo __LINE__.$db->stderr();
+						} 
+						else					
+						{
+							echo "Сохранено";
+						}					
+						
 						die; 
-					}
+					} 
+					else
+					if($_POST["action"] == "get_warnings")
+					{
+						$db = JFactory::getDBO();
+						
+						$sql="SELECT warnings FROM `groups` WHERE `id` =".$_POST["group_id"];
+						$db->setQuery($sql);
+						
+						$tasks = $db->loadObjectList(); 
+						foreach ($tasks as $task)
+						{
+							 echo ($task -> homework_task);
+						}   	 
+						die; 
+					} 
 			?>
 			
 			
@@ -376,48 +393,18 @@
 					<select id="select_class">
 						<option disabled value="default" selected>Выберете урок</option> 
 					</select> 
-				</div>
-				<div class="add_button_panel">			
-		     	 <button class="add_week_button">Добавить неделю</button>     	 
-		     	 <span class="saved_status"></span>
-				</div>
-				<div class="visible_week_panel">
-	     		 <button class="visible_week_button">Сделать неделю видимой</button>
-		     	 <button class="invisible_week_button">Сделать неделю невидимой</button>
-		     	 <span class="visible_week_text"></span>
-		     	</div>
-				
+				</div>				
 				<div class="clear"></div>
 			</div>
 			<div class="input_fields">
-			  <div class="input_students">
-				<p class="hiden_elem column_name">
-				  Имя
-				</p>
-			  </div>
-			  <div class="input_participation">
-				<p class="column_name hiden_elem">
-				  Participation
-				</p>
-			    <div class="input_fields_participation">
-			    </div>
-			  </div>
-			  <div class="input_quiz">
-				<p class="hiden_elem column_name">
-				  Quiz
-				</p>
-				<div class="input_fields_quiz">
-			    </div>
-			  </div>
-			  <div class="input_homework">
-				<p class=" column_name  hiden_elem">
-				  Homework
-				</p>
-				<div class="input_fields_homework">
-			    </div>
-			  </div>
+	  			<p id="stext">Объявление: </p>
+		  		<textarea class="hometasks"></textarea>			 
 			  <div class="clear"></div>
-			</div>			
+			</div>		
+			<div class="save_button">
+				 <button>Сохранить изменения</button>
+				 <span class="saved_status"></span>
+			</div>	
 			<div class="clear"></div>
 			
 			
@@ -426,95 +413,28 @@
 				 jQuery.noConflict();
 			 </script> 
 			<script type="text/javascript">  
-				
-				function SetUsersToPage(data)
+				 
+				function SetHomeWorkTask(data)
 				{
-					jQuery(".input_students").append(data);					
-				} 
-				
-				function ChangeUsername()
-				{
-					var studentsContainer = document.getElementsByClassName("added_students"); 
-					for (i = 0; i < studentsContainer.length; i++) 
-					{
-						if(studentsContainer[i].hasAttribute("value"))
-						{
-							value =  studentsContainer[i].getAttribute("value"); 
-							value = value.replace('_',' ');
-							studentsContainer[i].setAttribute("value", value);
-						} 
-					}
+					jQuery(".hometasks").empty();
+					jQuery(".hometasks").append(data);
 				}
-				
-				function getChar(event)
-				{
-				  if (event.which == null) {
-					if (event.keyCode < 32) return null;
-					return String.fromCharCode(event.keyCode)  
-				  }
-
-				  if (event.which != 0 && event.charCode != 0) {
-					if (event.which < 32) return null;
-					return String.fromCharCode(event.which)  
-				  }
-
-				  return null;  
-				};
-				var marksContainers = document.getElementsByClassName("added_marks"); 
-				marksContainers.onkeypress = function(e) {
-  					e = e || event;	
-					if (e.ctrlKey || e.altKey || e.metaKey) return;
-					var chr = getChar(e);
-					if (chr == null) return;
-					if (chr < '0' || chr > '9') {
-						return false;
-  						}
-				};  
-				
-				function ChangeMarks()
-				{
-					var marksContainer = document.getElementsByClassName("markers_input"); 
-					for (i = 0; i < marksContainer.length; i++) 
-					{
-						marksContainer[i].focusout  =  function()
-						{
-						var	user_id = jQuery(this).attr("data_id");
-						var	changed_mark = jQuery(this).val();							 
-						var	which_lesson =  jQuery(this).attr("which_mark"); 
-							console.log(" lesson = " + which_lesson);
-							jQuery.ajax({
-								type: "post",
-								url: document.location.href,
-								data: 		"action=save_changed_marks&user_id="+user_id+"&class_id="+class_id+"&which_lesson="+which_lesson+"&group_id="+group_id+"&changed_mark="+changed_mark,
-								success: function(data) 
-								{
-									console.log(data);
-								}
-							}); 	
-						};
-					}
-				}
-				
-				function CheckVisibleWeek()
-				{
-					group_id = jQuery("#select_group").attr('value');
-					week_id = jQuery("#select_week").attr('value');
-					jQuery.ajax({
-						type: "post",
-						url: document.location.href,
-						data: "action=check_week_invisible&week_id="+week_id+"&group_id="+group_id,
-						success: function(data) 
-						{
-							SetVisibleTextComment(data);
-						}
-					});
-				}
+				 
 				
 				function SetWeeksToPage(data)
 				{
 					jQuery("#select_week").empty();
 					jQuery("#select_week").append("<option disabled value='default_week' selected>Выберете неделю</option>");
 					jQuery("#select_week").append(data);
+				} 
+				
+				function ShowSavedStatus(data)
+				{ 
+					jQuery(".saved_status").empty();
+					jQuery(".saved_status").stop().animate({opacity:'1.0'},0);
+					jQuery(".saved_status").show(); 
+					jQuery(".saved_status").stop().animate({opacity:'0.0'}, 4200);
+					jQuery(".saved_status").append(data);
 				} 
 					
 				function SetNewWeeksToPage(data, group_id)
@@ -531,14 +451,7 @@
 						}
 					}); 
 					}
-				}
-				
-				function EmptyMArkSpace()
-				{
-					jQuery(".input_fields_participation").empty();
-					jQuery(".input_fields_quiz").empty();
-					jQuery(".input_fields_homework").empty();
-				}
+				} 
 				
 				function SetClassesToPage(data)
 				{
@@ -550,223 +463,48 @@
 					jQuery(".input_fields_participation").append(data);
 				}  
 				
-				function SetVisibleTextComment(data)
-				{
-					if(data == '0')
-					{
-						jQuery(".visible_week_text").css("background-color", "hsla(16, 87%, 52%, 0.69)");
-						jQuery(".visible_week_text").empty();
-						jQuery(".visible_week_text").text("Неделя невидна");
-					}
-					else
-					{
-						jQuery(".visible_week_text").css("background-color", "hsla(120, 82%, 51%, 0.69)");
-						jQuery(".visible_week_text").empty();
-						jQuery(".visible_week_text").text("Неделя видна");
-					}
-				}
-				
-				function HideWeekButton()
-				{
-					jQuery(".visible_week_button").hide();
-					jQuery(".invisible_week_button").hide();
-					jQuery(".visible_week_text").hide();
-				}
-				
-				function ShowWeekButton()
-				{
-					jQuery(".visible_week_button").show();
-					jQuery(".invisible_week_button").show();
-					jQuery(".visible_week_text").show();
-				}
-				
-				function SetStudentsMarkQuiz(data)
-				{
-					jQuery(".input_fields_quiz").append(data);
-				} 
-				function SetStudentsMarkHomework(data)
-				{
-					jQuery(".input_fields_homework").append(data);
-				} 
-				function ShowSavedStatus(data)
-				{ 
-					jQuery(".saved_status").empty();
-					jQuery(".saved_status").stop().animate({opacity:'1.0'},0);
-					jQuery(".saved_status").show(); 
-					jQuery(".saved_status").stop().animate({opacity:'0.0'}, 4200);
-					jQuery(".saved_status").append(data);
-				} 
+				  
 				var group_id = 0;
 				var week_id = 0;
-				var class_id = 0;
-				
-				HideWeekButton();
+				var class_id = 0;			
+				jQuery(".input_fields").hide();
 				
 				jQuery("#select_group").change(function()
 				{
+					jQuery(".input_fields").hide(); 
 					jQuery(".hiden_elem").show();
 					jQuery(".added_students").remove();
 					jQuery(".added_classes").remove();
 					jQuery(".added_weeks").remove();
-					
-					EmptyMArkSpace();
-					
-					jQuery('select option[value="default"]').prop('selected', true);
-					jQuery('select option[value="default_week"]').prop('selected', true);
-					
+					  
 					group_id = jQuery(this).attr('value');
-					console.log(group_id);
-					 jQuery.ajax({
-						type: "post",
-						url: document.location.href,
-						data: "action=get_students&group_id="+group_id,
-						success: function(data)
-						{
-							SetUsersToPage(data); 
-							ChangeUsername();
-						}
-					}); 
-					 jQuery.ajax({
-						type: "post",
-						url: document.location.href,
-						data: "action=get_weeks&group_id="+group_id,
-						success: function(data) 
-						{
-							SetWeeksToPage(data);
-						}
-					}); 
-				});
-				jQuery("#select_week").change(function()
-				{
-					CheckVisibleWeek();		
-					
-					ShowWeekButton();
-					
-					jQuery(".added_classes").remove();
-					jQuery(".input_fields_participation").empty();
-					jQuery(".input_fields_quiz").empty();
-					jQuery(".input_fields_homework").empty();
-					
-					jQuery('select option[value="default"]').prop('selected', true);
-					
-					week_id = jQuery(this).attr('value');
+					  
+					jQuery(".input_fields").show();
+					jQuery(".save_button").show();
 					jQuery.ajax({
 						type: "post",
 						url: document.location.href,
-						data: "action=get_class&group_id="+group_id+"&week_id="+week_id,
+						data: "action=get_warnings&group_id="+group_id,
 						success: function(data) 
 						{
-							SetClassesToPage(data);
-						}
-					}); 
-				});
-				jQuery("#select_class").change(function()
-				{ 
-					EmptyMArkSpace();
-					
-					class_id = jQuery(this).attr('value');
-					jQuery.ajax({
-						type: "post",
-						url: document.location.href,
-						data: "action=get_marks&group_id="+group_id+"&week_id="+week_id+"&class_id="+class_id+"&which_mark_id=participation",
-						success: function(data) 
-						{
-							SetStudentsMarkParticipation(data); 
-							ChangeMarks();
-						}
-					}); 
-					jQuery.ajax({
-						type: "post",
-						url: document.location.href,
-						data: "action=get_marks&group_id="+group_id+"&week_id="+week_id+"&class_id="+class_id+"&which_mark_id=quiz",
-						success: function(data) 
-						{
-							SetStudentsMarkQuiz(data); 
-							ChangeMarks();
-						}
-					}); 
-					jQuery.ajax({
-						type: "post",
-						url: document.location.href,
-						data: "action=get_marks&group_id="+group_id+"&week_id="+week_id+"&class_id="+class_id+"&which_mark_id=homework",
-						success: function(data) 
-						{
-							SetStudentsMarkHomework(data); 
-							ChangeMarks();
-						}
-					});   
-				});	
-				
-				jQuery(".add_week_button").click(function()
-				{
-					group_id = jQuery("#select_group").attr('value');
-					jQuery.ajax({
-						type: "post",
-						url: document.location.href,
-						data: "action=add_week&group_id="+group_id,
-						success: function(data) 
-						{ 
-							SetNewWeeksToPage(data, group_id);
-						}
-					
-					});
-					
-				});
-				jQuery(".visible_week_button").click(function()
-				{ 
-					group_id = jQuery("#select_group").attr('value');
-					week_id = jQuery("#select_week").attr('value');
-					jQuery.ajax({
-						type: "post",
-						url: document.location.href,
-						data: "action=make_week_visible&week_id="+week_id+"&group_id="+group_id,
-						success: function(data) 
-						{
-							SetVisibleTextComment(data);
-						}
-					});
-				});
-				
-				jQuery(".invisible_week_button").click(function()
-				{ 					
-					group_id = jQuery("#select_group").attr('value');
-					jQuery.ajax({
-						type: "post",
-						url: document.location.href,
-						data: "action=make_week_invisible&week_id="+week_id+"&group_id="+group_id,
-						success: function(data) 
-						{
-							SetVisibleTextComment(data);
-						}
-					});
-				});
-				
-				
-													 
-				jQuery(".save_button").click(function()
-				{  
-					user_id = jQuery(".username_input").attr("data_id");
-					changed_username = jQuery(".username_input").val();
-					which_lesson =  jQuery(".markers_input").attr("which_mark"); 
-					console.log(" lesson = " + which_lesson);
-					jQuery.ajax({
-						type: "post",
-						url: document.location.href,
-						data: "action=save_changed_username&user_id="+user_id+"&changed_username="+changed_username,
-						success: function(data) 
-						{
-							ShowSavedStatus(data);
-						}
-					}); 	
-					jQuery.ajax({
-						type: "post",
-						url: document.location.href,
-						data: "action=save_changed_marks&user_id="+user_id+"&class_id="+class_id+"&which_lesson="+which_lesson+"&group_id="+group_id,
-						success: function(data) 
-						{
+							SetHomeWorkTask(data);
 							console.log(data);
 						}
-					}); 	
+					}); 					 
+				}); 												 
+				jQuery(".save_button").click(function()
+				{       
+					group_id = jQuery("#select_group").attr('value');  
+					new_warning = jQuery(".hometasks").val();  
+					jQuery.ajax({
+						type: "post",
+						url: document.location.href,
+						data: "action=save_me&group_id="+group_id+"&new_warning="+new_warning,
+						success: function(data) 
+						{
+							ShowSavedStatus(data);  
+						}
+					}); 					 
 				}); 
 			</script>
 			{/source}

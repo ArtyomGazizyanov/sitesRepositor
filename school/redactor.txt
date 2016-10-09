@@ -1,0 +1,224 @@
+﻿			{source}
+			<?php
+			function walk($val)
+			{
+				$nums = explode(':', $val);
+				return [$nums[0] => $nums[1]];
+			} 
+			if($_POST["action"] == "save_plz")
+			{
+				echo("bitch1");
+				die;
+			}   
+			if($_POST["action"] == "get_students")
+			{ 
+			 $db = JFactory::getDBO();
+			 $sql="SELECT id, name FROM `txmb7_users` WHERE students_group=".$_POST["group_id"] ." ORDER BY `name`";
+			 $db->setQuery($sql);
+			 $students = $db->loadObjectList();
+
+			 foreach ($students as $student)
+			 {
+				 print "<input data_id=".$student -> id." class='added_students username_input' name='textfield' type='text' value=".$student -> name.">"; 
+			 } 
+			die;
+			}
+			else
+			if($_POST["action"] == "get_weeks")
+			{
+				$week_count = 0;
+				$db = JFactory::getDBO();
+				$sql="SELECT id FROM gr" . $_POST["group_id"] . "_week";
+				$db->setQuery($sql);
+				$weeks = $db->loadObjectList();
+				foreach ($weeks as $week)
+				{
+					$week_count++;
+					echo "<option class='added_weeks' value=".$week->id . ">".$week_count. "</option>";
+				 }
+				die;
+			}
+			else
+			{
+			if($_POST["action"] == "get_class")
+			{
+				$db = JFactory::getDBO();
+				$sql="SELECT * FROM gr" . $_POST["group_id"] . "_week WHERE id=" . $_POST["week_id"];
+				$db->setQuery($sql);
+				$classes = $db->loadObjectList();
+				foreach ($classes as $class)
+				{ 
+						echo "<option class='added_classes' value=".$class->class1 . " >1 class</option>"; 
+						echo "<option class='added_classes' value=".$class->class2 . ">2 class</option>";     		 
+				}
+				die;
+			}
+			
+			}
+			?>
+			
+			
+			<div class="control_panel">
+			 <div class="select_group_block">
+				<p id="stext">
+					Группа
+				</p>
+					<select id="select_group">
+					<option disabled selected>Выберете группу</option>
+			<?php
+				$db = JFactory::getDBO();
+				$sql="SELECT * FROM `groups`";
+				$db->setQuery($sql);
+				$groups = $db->loadObjectList();
+				foreach ($groups as $group)
+				{
+					print "<option value=".$group->id.">".$group -> name."</option>";
+				}
+			?>
+					</select> 
+				</div>
+				<div class="select_week_block">
+					<p id="stext">Неделя</p>
+					<select id="select_week">
+						<option disabled value="default_week" selected>Выберете неделю</option> 
+					</select> 
+				</div>
+				 <div class="select_class_block">
+					<p id="stext">Урок</p>
+					<select id="select_class">
+						<option disabled value="default" selected>Выберете урок</option> 
+					</select> 
+				</div>				
+				<div class="clear"></div>
+			</div>
+			<div class="input_fields">
+	  			<p id="stext">Домашнее задание: </p>
+		  		<textarea class="hometasks"></textarea>			 
+			  <div class="clear"></div>
+			</div>		
+			<div class="save_button">
+				 <button>Сохранить изменения</button>
+			</div>	
+			<div class="clear"></div>
+			
+			
+			
+			<script type="text/javascript">
+				 jQuery.noConflict();
+			 </script> 
+			<script type="text/javascript">  
+				 
+				
+				 
+				
+				function SetWeeksToPage(data)
+				{
+					jQuery("#select_week").empty();
+					jQuery("#select_week").append("<option disabled value='default_week' selected>Выберете неделю</option>");
+					jQuery("#select_week").append(data);
+				} 
+					
+				function SetNewWeeksToPage(data, group_id)
+				{
+					if(data == "111")
+					{
+						jQuery.ajax({
+						type: "post",
+						url: 'http://localhost/school/index.php/lichnyj-kabinet/redaktirovanie-otsenok',
+						data: "action=get_weeks&group_id="+group_id,
+						success: function(data) 
+						{
+							SetWeeksToPage(data);
+						}
+					}); 
+					}
+				} 
+				
+				function SetClassesToPage(data)
+				{
+					jQuery("#select_class").append(data);
+				} 
+
+				function SetStudentsMarkParticipation(data)
+				{
+					jQuery(".input_fields_participation").append(data);
+				}  
+				
+				  
+				var group_id = 0;
+				var week_id = 0;
+				var class_id = 0;			
+				jQuery(".input_fields").hide();
+				
+				jQuery("#select_group").change(function()
+				{
+					jQuery(".hiden_elem").show();
+					jQuery(".added_students").remove();
+					jQuery(".added_classes").remove();
+					jQuery(".added_weeks").remove();
+					  
+					jQuery('select option[value="default"]').prop('selected', true);
+					jQuery('select option[value="default_week"]').prop('selected', true);
+					
+					group_id = jQuery(this).attr('value');
+					  
+					 jQuery.ajax({
+						type: "post",
+						url: 'http://localhost/school/index.php/lichnyj-kabinet/redaktirovanie-otsenok',
+						data: "action=get_weeks&group_id="+group_id,
+						success: function(data) 
+						{
+							SetWeeksToPage(data);
+						}
+					}); 
+				});
+				jQuery("#select_week").change(function()
+				{ 	 
+					jQuery(".added_classes").remove();
+					jQuery(".input_fields_participation").empty();
+					jQuery(".input_fields_quiz").empty();
+					jQuery(".input_fields_homework").empty();
+					
+					jQuery('select option[value="default"]').prop('selected', true);
+					
+					week_id = jQuery(this).attr('value');
+					jQuery.ajax({
+						type: "post",
+						url: 'http://localhost/school/index.php/lichnyj-kabinet/redaktirovanie-otsenok',
+						data: "action=get_class&group_id="+group_id+"&week_id="+week_id,
+						success: function(data) 
+						{
+							SetClassesToPage(data);
+						}
+					}); 
+				});
+				jQuery("#select_class").change(function()
+				{   
+					class_id = jQuery(this).attr('value');
+					jQuery(".input_fields").show();
+					jQuery(".save_button").show();
+					 
+				});	
+				
+				
+				
+													 
+				jQuery(".save_button").click(function()
+				{     
+					class_id = jQuery("#select_class").attr('value');
+					console.log("class_id = "+class_id);
+					week_id = jQuery("#select_week").attr('value'); console.log("week_id = "+week_id);
+					group_id = jQuery("#select_group").attr('value'); console.log("group_id = "+group_id);
+					new_hometask = jQuery(".hometasks").val(); console.log("new_hometask = "+new_hometask);
+					jQuery.ajax({
+						type: "post",
+						url: 'http://localhost/school/index.php/lichnyj-kabinet/redaktirovanie-otsenok',
+						data: "action=save_plz&group_id="+group_id+"&week_id="+week_id,
+						success: function(data) 
+						{
+							console.log(data);
+						}
+					}); 
+				}); 
+			</script>
+			{/source}

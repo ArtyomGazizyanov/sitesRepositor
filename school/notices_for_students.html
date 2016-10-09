@@ -1,0 +1,60 @@
+			{source}
+			<?php 
+				 if($_POST["action"] == "get_notice")
+					{
+						$db = JFactory::getDBO();
+						$user = &JFactory::getUser();
+						$id = $user->id;
+						$sql="SELECT  notice, datatime_notice FROM `txmb7_users` WHERE `id` =".$id;
+						$db->setQuery($sql);
+						$students = $db->loadObjectList(); 
+						foreach ($students as $student)
+						{ 
+							if($student -> notice == NULL)
+							{
+								$string = "У вас нет замечаний";
+							}
+							else
+							{
+								$string = $student -> notice;
+							}
+							print "<p  class='person_notice_added' data_id=".$student -> id." name='textfield' type='text'>". $string ."</p>"; 
+							print "<span>Дата: ".$student -> datatime_notice ."</span>";
+						}  			
+						die;
+					}
+			?>
+			
+			
+			<div class="notice_div">
+				<p id="stext">Замечание:</p>
+				<div class="person_notice">
+					
+				</div>
+			</div>				
+				<div class="clear"></div>
+		 
+			
+			
+			
+			<script type="text/javascript">
+				 jQuery.noConflict();
+			 </script> 
+			<script type="text/javascript">  
+				function SetNotice(data)
+				{
+					jQuery(".person_notice").append(data);
+				}
+				
+				jQuery.ajax({
+						type: "post",
+						url: document.location.href,
+						data: "action=get_notice",
+						success: function(data) 
+						{
+							SetNotice(data);
+						}
+				}); 					
+				 
+			</script>
+			{/source}
